@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const fractureController = require('../controllers/fractureController');
+const fractureController = require("../controllers/fractureController");
 
-router.post('/create', fractureController.createFracture);
-router.get('/:userId', fractureController.getAllFracturesByUserId);
-router.get('/fractures/:id', fractureController.getFractureById);
+router.post("/create", fractureController.createFracture);
+router.get("/:user_id", fractureController.getAllFracturesByUserId);
+router.get("/fractures/:id", fractureController.getFractureById);
 
 module.exports = router;

@@ -1,13 +1,13 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const formData = require('form-data');
-const Mailgun = require('mailgun.js');
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const formData = require("form-data");
+const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
-  username: 'api',
-  key: 'd26f58840c0a734d45e49e04b4717422-2b91eb47-cbd79332',
+  username: "api",
+  key: "d26f58840c0a734d45e49e04b4717422-2b91eb47-cbd79332",
 });
 
 const getUser = (request, response) => {
@@ -26,45 +26,46 @@ const login = async (request, response) => {
   try {
     // 400 -> Client Error
     if (!email || !password) {
-      return response.status(400).send('Please provide Email and Password');
+      return response.status(400).send("Please provide Email and Password");
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return response.status(404).send('User Not Found');
+      return response.status(404).send("User Not Found");
     }
 
     if (!password.trim()) {
-      return response.status(400).send('Password cannot be empty');
+      return response.status(400).send("Password cannot be empty");
     }
 
     if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
         { userId: user._id, email },
         process.env.TOKEN_SECRET,
-        { expiresIn: '2h' }
+        { expiresIn: "2h" }
       );
       user.token = token;
 
       return response.status(200).json({ user, token });
     }
 
-    return response.status(400).send('Invalid User/Password');
+    return response.status(400).send("Invalid User/Password");
   } catch (error) {
-    return response.status(500).send('Internal Server Error');
+    console.error("Login error:", error);
+    return response.status(500).send("Internal Server Error");
   }
 };
 
 const resetPassword = async (req, res) => {
   const { email, password } = req.body;
-  console.log('New password:', password);
+  console.log("New password:", password);
   try {
     // Find the user by email
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -73,10 +74,10 @@ const resetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({ message: 'Password reset successfully' });
+    return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -86,34 +87,37 @@ const verifyEmail = async (req, res) => {
 
     // Validate the input data
     if (!first_name || !last_name || !email || !password) {
-      return res.status(400).send('Name, email, and password are required');
+      return res.status(400).send("Name, email, and password are required");
     }
 
     // Check if email already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).send('Email already exists');
+      return res.status(400).send("Email already exists");
     }
 
     // Hash the password using bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a verification code
-    const verificationCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Generates a 6-character code
+    const verificationCode = crypto
+      .randomBytes(3)
+      .toString("hex")
+      .toUpperCase(); // Generates a 6-character code
 
     try {
       await mg.messages
-      .create('sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org', {
-        from: 'Medical <postmaster@sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org>',
-        to: await email,
-        subject: 'Verification Email',
-        text: `Welcome to Medical!\nThis is your verification code: ${verificationCode}`,
-      })
-      .then((msg) => console.log(msg)) // logs response data
-      .catch((err) => console.log(err));
+        .create("sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org", {
+          from: "Medical <postmaster@sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org>",
+          to: await email,
+          subject: "Verification Email",
+          text: `Welcome to Medical!\nThis is your verification code: ${verificationCode}`,
+        })
+        .then((msg) => console.log(msg)) // logs response data
+        .catch((err) => console.log(err));
     } catch (mailgunError) {
-      console.error('Error sending email with Mailgun:', mailgunError.message);
-      return res.status(500).send('Failed to send verification email');
+      console.error("Error sending email with Mailgun:", mailgunError.message);
+      return res.status(500).send("Failed to send verification email");
     }
 
     // Save user data to database with verification status
@@ -128,10 +132,13 @@ const verifyEmail = async (req, res) => {
     await user.save();
 
     // Return a success message
-    return res.status(200).json({ message: 'Registration successful. Please check your email for the verification code.' });
+    return res.status(200).json({
+      message:
+        "Registration successful. Please check your email for the verification code.",
+    });
   } catch (e) {
-    console.error('Error occurred during registration:', e.message);
-    return res.status(500).send('Internal Server Error');
+    console.error("Error occurred during registration:", e.message);
+    return res.status(500).send("Internal Server Error");
   }
 };
 
@@ -141,18 +148,18 @@ const verifyCodeAndLogin = async (req, res) => {
 
     // Validate the input data
     if (!email || !verificationCode) {
-      return res.status(400).send('Email and verification code are required');
+      return res.status(400).send("Email and verification code are required");
     }
 
     // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send("User not found");
     }
 
     // Check if the provided verification code matches the code in the database
     if (user.code !== verificationCode) {
-      return res.status(400).send('Invalid verification code');
+      return res.status(400).send("Invalid verification code");
     }
 
     // Code is correct, proceed with login (e.g., generate a token or session)
@@ -160,20 +167,19 @@ const verifyCodeAndLogin = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email },
       process.env.TOKEN_SECRET,
-      { expiresIn: '2h' }
+      { expiresIn: "2h" }
     );
     user.token = token;
 
     await user.save();
 
     // Return a success message with the token
-    return res.status(200).json({ message: 'Login successful', token });
+    return res.status(200).json({ message: "Login successful", token });
   } catch (e) {
-    console.error('Error occurred during code verification:', e.message);
-    return res.status(500).send('Internal Server Error');
+    console.error("Error occurred during code verification:", e.message);
+    return res.status(500).send("Internal Server Error");
   }
 };
-
 
 module.exports = {
   getUser,

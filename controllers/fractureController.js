@@ -1,4 +1,4 @@
-const Fracture = require('../models/Fracture');
+const Fracture = require("../models/Fracture");
 
 const createFracture = async (request, response) => {
   const { user_id, duration, confidence } = request.body;
@@ -27,14 +27,14 @@ const getAllFracturesByUserId = (request, response) => {
 };
 
 const getFractureById = (request, response) => {
-    Fracture.findById(request.params.id)
-      .then((fracture) => {
-        return response.status(200).json(fracture);
-      })
-      .catch((error) => {
-        return response.status(500).json(error);
-      });
-  };
+  Fracture.findById(request.params.id)
+    .then((fracture) => {
+      return response.status(200).json(fracture);
+    })
+    .catch((error) => {
+      return response.status(500).json(error);
+    });
+};
 
 module.exports = {
   createFracture,
