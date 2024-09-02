@@ -6,8 +6,8 @@ const formData = require("form-data");
 const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
-  username: "api",
-  key: "d26f58840c0a734d45e49e04b4717422-2b91eb47-cbd79332",
+  username: "apikey",
+  key: "",
 });
 
 const getUser = (request, response) => {
@@ -54,30 +54,6 @@ const login = async (request, response) => {
   } catch (error) {
     console.error("Login error:", error);
     return response.status(500).send("Internal Server Error");
-  }
-};
-
-const resetPassword = async (req, res) => {
-  const { email, password } = req.body;
-  console.log("New password:", password);
-  try {
-    // Find the user by email
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update the user's password with the new hashed password
-    user.password = hashedPassword;
-    await user.save();
-
-    return res.status(200).json({ message: "Password reset successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -185,6 +161,5 @@ module.exports = {
   getUser,
   login,
   verifyEmail,
-  resetPassword,
   verifyCodeAndLogin,
 };
