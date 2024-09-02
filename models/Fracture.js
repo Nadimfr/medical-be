@@ -14,7 +14,7 @@ const fractureSchema = new mongoose.Schema({
   },
   duration: {
     type: Number,
-    unique: false,
+    default: 0,
   },
   confidence: {
     type: Number,
@@ -26,6 +26,10 @@ const fractureSchema = new mongoose.Schema({
     min: 2,
     max: 1000,
     unique: false,
+  },
+  startDate: {
+    type: Date,
+    default: Date.now,
   },
 });
 

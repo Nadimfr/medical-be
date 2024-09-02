@@ -9,8 +9,16 @@ const solutionRoute = require("./routes/solutionRoute");
 
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cron = require("node-cron");
 
 require("dotenv").config();
+
+cron.schedule("0 0 * * *", () => {
+  console.log("Running cron job at midnight...");
+  updateFractureDuration()
+    .then(() => console.log("Durations updated"))
+    .catch((err) => console.error("Error updating durations:", err));
+});
 
 mongoose
   .connect(

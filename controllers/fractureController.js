@@ -1,7 +1,8 @@
 const Fracture = require("../models/Fracture");
 
 const createFracture = async (request, response) => {
-  const { user_id, duration, confidence, solutions, image } = request.body;
+  const { user_id, duration, confidence, solutions, image, startDate } =
+    request.body;
 
   const fracture = new Fracture({
     user_id,
@@ -9,6 +10,7 @@ const createFracture = async (request, response) => {
     confidence,
     solutions,
     image,
+    startDate,
   });
   await fracture.save();
 
@@ -38,8 +40,28 @@ const getFractureById = (request, response) => {
     });
 };
 
+const updateFractureDuration = async () => {
+  try {
+    const fractures = await Fracture.find();
+    const now = new Date();
+
+    for (const fracture of fractures) {
+      const durationDays = Math.floor(
+        (now - new Date(fracture.startDate)) / (1000 * 60 * 60 * 24)
+      );
+      fracture.duration = durationDays;
+      await fracture.save();
+    }
+
+    console.log("All fracture durations updated successfully");
+  } catch (error) {
+    console.error("Error updating fracture durations:", error);
+  }
+};
+
 module.exports = {
   createFracture,
   getAllFracturesByUserId,
   getFractureById,
+  updateFractureDuration,
 };
