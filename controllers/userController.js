@@ -5,10 +5,6 @@ const crypto = require("crypto");
 const formData = require("form-data");
 const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
-const mg = mailgun.client({
-  username: "apikey",
-  key: "",
-});
 
 const getUser = (request, response) => {
   User.findById(request.params.id)
@@ -76,18 +72,15 @@ const verifyEmail = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a verification code
-    const verificationCode = crypto
-      .randomBytes(3)
-      .toString("hex")
-      .toUpperCase(); // Generates a 6-character code
+    const code = crypto.randomBytes(3).toString("hex").toUpperCase(); // Generates a 6-character code
 
     try {
       await mg.messages
-        .create("sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org", {
-          from: "Medical <postmaster@sandbox4b5b4b1b2f694b28b669ae444679ec75.mailgun.org>",
+        .create("sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org", {
+          from: "Medical <postmaster@sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org>",
           to: await email,
           subject: "Verification Email",
-          text: `Welcome to Medical!\nThis is your verification code: ${verificationCode}`,
+          text: `Welcome to Medical!\nThis is your verification code: ${code}`,
         })
         .then((msg) => console.log(msg)) // logs response data
         .catch((err) => console.log(err));
@@ -102,7 +95,7 @@ const verifyEmail = async (req, res) => {
       first_name,
       last_name,
       password: hashedPassword,
-      code: verificationCode, // Store the verification code
+      code: code, // Store the verification code
     });
 
     await user.save();
@@ -120,10 +113,12 @@ const verifyEmail = async (req, res) => {
 
 const verifyCodeAndLogin = async (req, res) => {
   try {
-    const { email, verificationCode } = req.body;
+    const { email, code } = req.body;
+
+    console.log(email, code);
 
     // Validate the input data
-    if (!email || !verificationCode) {
+    if (!email || !code) {
       return res.status(400).send("Email and verification code are required");
     }
 
@@ -134,7 +129,7 @@ const verifyCodeAndLogin = async (req, res) => {
     }
 
     // Check if the provided verification code matches the code in the database
-    if (user.code !== verificationCode) {
+    if (user.code !== code) {
       return res.status(400).send("Invalid verification code");
     }
 
@@ -150,7 +145,7 @@ const verifyCodeAndLogin = async (req, res) => {
     await user.save();
 
     // Return a success message with the token
-    return res.status(200).json({ message: "Login successful", token });
+    return res.status(200).json({ message: "Login successful", user, token });
   } catch (e) {
     console.error("Error occurred during code verification:", e.message);
     return res.status(500).send("Internal Server Error");
