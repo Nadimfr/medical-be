@@ -1,4 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
+const solutionSchema = new mongoose.Schema({
+  duration: Number,
+  solution: String,
+});
 
 const fractureSchema = new mongoose.Schema({
   user_id: {
@@ -8,15 +13,20 @@ const fractureSchema = new mongoose.Schema({
     unique: false,
   },
   duration: {
-    type: String,
-    min: 2,
-    max: 40,
+    type: Number,
     unique: false,
   },
   confidence: {
     type: Number,
     unique: false,
   },
+  solutions: [solutionSchema],
+  image: {
+    type: String,
+    min: 2,
+    max: 1000,
+    unique: false,
+  },
 });
 
-module.exports = mongoose.model('Fracture', fractureSchema);
+module.exports = mongoose.model("Fracture", fractureSchema);

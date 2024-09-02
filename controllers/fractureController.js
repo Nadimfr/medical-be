@@ -1,12 +1,14 @@
 const Fracture = require("../models/Fracture");
 
 const createFracture = async (request, response) => {
-  const { user_id, duration, confidence } = request.body;
+  const { user_id, duration, confidence, solutions, image } = request.body;
 
   const fracture = new Fracture({
     user_id,
     duration,
     confidence,
+    solutions,
+    image,
   });
   await fracture.save();
 

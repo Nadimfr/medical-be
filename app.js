@@ -5,6 +5,7 @@ const userRoute = require("./routes/userRoute");
 const blogRoute = require("./routes/blogRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const fractureRoute = require("./routes/fractureRoute");
+const solutionRoute = require("./routes/solutionRoute");
 
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -41,6 +42,7 @@ app.use("/api/users", userRoute);
 app.use("/api/blogs", blogRoute);
 app.use("/api/reviews", reviewRoute);
 app.use("/api/fractures", fractureRoute);
+app.use("/api/solutions", solutionRoute);
 
 app.listen(8080, () => {
   console.log("Running");

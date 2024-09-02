@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const blogSchema = new mongoose.Schema({
   title: {
@@ -23,6 +23,12 @@ const blogSchema = new mongoose.Schema({
     type: Date,
     unique: false,
   },
+  image: {
+    type: String,
+    min: 2,
+    max: 100,
+    unique: false,
+  },
 });
 
-module.exports = mongoose.model('Blog', blogSchema);
+module.exports = mongoose.model("Blog", blogSchema);
