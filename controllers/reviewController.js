@@ -1,4 +1,4 @@
-const Review = require('../models/Review');
+const Review = require("../models/Review");
 
 const getReviews = (request, response) => {
   Review.find({})
@@ -21,7 +21,7 @@ const getNewestReviews = (request, response) => {
     });
 };
 
-const createReview = (req, res) => {
+const createReview = async (req, res) => {
   const { name, stars, review } = req.body;
 
   const newReview = new Review({
@@ -31,13 +31,12 @@ const createReview = (req, res) => {
     date: new Date(),
   });
 
-  newReview.save((err) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-
-    return res.status(201).json(newReview);
-  });
+  try {
+    const savedReview = await newReview.save();
+    return res.status(201).json(savedReview);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = {
