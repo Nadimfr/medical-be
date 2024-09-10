@@ -39,7 +39,7 @@ const login = async (request, response) => {
       const token = jwt.sign(
         { userId: user._id, email },
         process.env.TOKEN_SECRET,
-        { expiresIn: "2h" }
+        { expiresIn: "1m" }
       );
       user.token = token;
 
@@ -74,37 +74,56 @@ const verifyEmail = async (req, res) => {
     // Generate a verification code
     const code = crypto.randomBytes(3).toString("hex").toUpperCase(); // Generates a 6-character code
 
+    // Create the email message
+    const emailData = {
+      from: "Medical <postmaster@sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org>",
+      to: email,
+      subject: "Verification Email",
+      text: `Welcome to Medical!\nThis is your verification code: ${code}`,
+    };
+
+    // Send the email
+    const sendEmail = () => {
+      return new Promise((resolve, reject) => {
+        mg.messages
+          .create(
+            "sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org",
+            emailData
+          )
+          .then((msg) => {
+            console.log(msg); // logs response data
+            resolve();
+          })
+          .catch((err) => {
+            console.log(err);
+            reject(err);
+          });
+      });
+    };
+
     try {
-      await mg.messages
-        .create("sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org", {
-          from: "Medical <postmaster@sandbox1ee09fb1b1ea4ea0a30ac25058bd8e1b.mailgun.org>",
-          to: await email,
-          subject: "Verification Email",
-          text: `Welcome to Medical!\nThis is your verification code: ${code}`,
-        })
-        .then((msg) => console.log(msg)) // logs response data
-        .catch((err) => console.log(err));
+      await sendEmail(); // Wait for the email to be sent
+
+      // Save user data to database with verification status if email is sent successfully
+      const user = new User({
+        email,
+        first_name,
+        last_name,
+        password: hashedPassword,
+        code, // Store the verification code
+      });
+
+      await user.save();
+
+      // Return a success message
+      return res.status(200).json({
+        message:
+          "Registration successful. Please check your email for the verification code.",
+      });
     } catch (mailgunError) {
       console.error("Error sending email with Mailgun:", mailgunError.message);
       return res.status(500).send("Failed to send verification email");
     }
-
-    // Save user data to database with verification status
-    const user = new User({
-      email,
-      first_name,
-      last_name,
-      password: hashedPassword,
-      code: code, // Store the verification code
-    });
-
-    await user.save();
-
-    // Return a success message
-    return res.status(200).json({
-      message:
-        "Registration successful. Please check your email for the verification code.",
-    });
   } catch (e) {
     console.error("Error occurred during registration:", e.message);
     return res.status(500).send("Internal Server Error");
@@ -114,8 +133,6 @@ const verifyEmail = async (req, res) => {
 const verifyCodeAndLogin = async (req, res) => {
   try {
     const { email, code } = req.body;
-
-    console.log(email, code);
 
     // Validate the input data
     if (!email || !code) {

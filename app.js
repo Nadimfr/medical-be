@@ -6,6 +6,7 @@ const blogRoute = require("./routes/blogRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const fractureRoute = require("./routes/fractureRoute");
 const solutionRoute = require("./routes/solutionRoute");
+const fractureController = require("./controllers/fractureController");
 
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -15,7 +16,8 @@ require("dotenv").config();
 
 cron.schedule("0 0 * * *", () => {
   console.log("Running cron job at midnight...");
-  updateFractureDuration()
+  fractureController
+    .updateFractureDuration()
     .then(() => console.log("Durations updated"))
     .catch((err) => console.error("Error updating durations:", err));
 });

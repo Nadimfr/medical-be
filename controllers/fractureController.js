@@ -46,14 +46,12 @@ const updateFractureDuration = async () => {
     const now = new Date();
 
     for (const fracture of fractures) {
-      const durationDays = Math.floor(
-        (now - new Date(fracture.startDate)) / (1000 * 60 * 60 * 24)
+      const durationMinutes = Math.floor(
+        (now - new Date(fracture.startDate)) / (1000 * 60)
       );
-      fracture.duration = durationDays;
+      fracture.duration = durationMinutes;
       await fracture.save();
     }
-
-    console.log("All fracture durations updated successfully");
   } catch (error) {
     console.error("Error updating fracture durations:", error);
   }

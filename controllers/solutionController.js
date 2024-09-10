@@ -2,14 +2,11 @@ const Solution = require("../models/Solution");
 
 const getSolutionsByDuration = (request, response) => {
   const duration = parseInt(request.params.duration, 10);
-  console.log(`Requested duration: ${duration}`); // Debugging
-
   Solution.aggregate([
     { $match: { duration: duration } },
     { $sample: { size: 5 } },
   ])
     .then((solutions) => {
-      console.log(`Solutions found: ${JSON.stringify(solutions)}`); // Debugging
       return response.status(200).json(solutions);
     })
     .catch((error) => {
